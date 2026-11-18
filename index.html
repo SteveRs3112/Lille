@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0826">
+<title>Lille · vendredi 4 décembre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --bg: #F3F2FA;
+    --surface: #FFFFFF;
+    --surface-2: #EBE9F7;
+    --ink: #120D36;
+    --muted: #5E5988;
+    --line: #DCD8F1;
+    --day: #0090B5;
+    --dusk: #6A4CF5;
+    --night: #DB1170;
+    --shadow: 0 1px 2px rgba(18,13,54,.06), 0 14px 34px rgba(18,13,54,.09);
+    --radius: 24px;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0B0826;
+      --surface: #151041;
+      --surface-2: #1F1857;
+      --ink: #F3F1FF;
+      --muted: #A7A1D6;
+      --line: #2B2470;
+      --day: #22DCFF;
+      --dusk: #A08CFF;
+      --night: #FF3D96;
+      --shadow: 0 0 0 1px rgba(255,255,255,.05) inset, 0 18px 40px rgba(0,0,0,.45);
+      color-scheme: dark;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { height: 100%; }
+  html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 80px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 500 16px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+    z-index: 1000; background: var(--bg);
+  }
+  a { color: inherit; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative; overflow: hidden; isolation: isolate;
+    background: #0B0826; color: #fff;
+    padding: 44px 22px 96px;
+  }
+  .hero .blob { position: absolute; border-radius: 50%; filter: blur(70px); z-index: -1; }
+  .b1 { width: 460px; height: 460px; background: #13C7EE; top: -220px; left: -160px; opacity: .75; }
+  .b2 { width: 420px; height: 420px; background: #6A4CF5; top: -40px; right: -120px; opacity: .8; }
+  .b3 { width: 520px; height: 520px; background: #F0157A; bottom: -360px; left: 30%; opacity: .7; }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; opacity: .18;
+    background-image: radial-gradient(rgba(255,255,255,.9) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(#000, transparent 85%); mask-image: linear-gradient(#000, transparent 85%);
+  }
+  .hero-inner { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
+  .kicker { margin: 0; font-weight: 700; font-size: 15px; opacity: .85; }
+  h1 {
+    margin: 0; font: 900 clamp(76px, 22vw, 220px)/.82 Unbounded, system-ui, sans-serif;
+    letter-spacing: -.055em;
+    background: linear-gradient(100deg, #7CF1FF 0%, #FFFFFF 35%, #C8BCFF 60%, #FF6FB5 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+  .glass {
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-radius: 22px; padding: 14px 18px;
+  }
+  .counter { display: flex; align-items: center; gap: 14px; flex: 1 1 320px; }
+  .counter-big { font: 800 clamp(30px, 8vw, 46px)/1 Unbounded, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .counter p { margin: 0; font-weight: 700; }
+  .fact { flex: 0 1 220px; font-size: 14px; }
+  .fact strong { display: block; font: 600 15px/1.2 Unbounded, sans-serif; margin-bottom: 4px; }
+  .fact span { opacity: .82; }
+
+  /* ---------- Onglets ---------- */
+  .tabs-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 900; margin-top: -32px; padding: 0 20px; }
+  .tabs {
+    position: relative; max-width: 380px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--surface); border-radius: 999px; padding: 6px; box-shadow: var(--shadow);
+  }
+  .tabs .pill {
+    position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc(50% - 6px); border-radius: 999px;
+    background: linear-gradient(110deg, var(--day), var(--dusk) 55%, var(--night));
+    transition: transform .35s cubic-bezier(.3,.9,.3,1);
+  }
+  .tabs[data-active="itineraire"] .pill { transform: translateX(100%); }
+  .tab {
+    position: relative; z-index: 1; border: 0; background: transparent; cursor: pointer;
+    font: 800 15px/1 Manrope, sans-serif; color: var(--muted); padding: 14px 10px; border-radius: 999px;
+    transition: color .25s;
+  }
+  .tab[aria-selected="true"] { color: #fff; }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 34px 20px 64px; }
+  .panel[hidden] { display: none; }
+
+  /* ---------- Timing ---------- */
+  .timing-wrap { max-width: 760px; margin: 0 auto; }
+  ol.timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+  ol.timeline::before {
+    content: ""; position: absolute; left: 21px; top: 24px; bottom: 24px; width: 4px; border-radius: 4px;
+    background: linear-gradient(var(--day), var(--dusk) 55%, var(--night));
+  }
+  .step { display: grid; grid-template-columns: 46px 1fr; gap: 14px; padding: 9px 0; }
+  .node {
+    width: 46px; height: 46px; border-radius: 50%; background: var(--bg); position: relative; z-index: 1;
+    display: grid; place-items: center; font: 800 14px/1 Unbounded, sans-serif; color: var(--tone);
+  }
+  .node::before { content: ""; position: absolute; inset: 6px; border-radius: 50%; border: 3px solid var(--tone); }
+  .step.done .node { color: #fff; }
+  .step.done .node::before { background: var(--tone); }
+  .step.now .node::before { background: var(--tone); box-shadow: 0 0 0 8px color-mix(in srgb, var(--tone) 22%, transparent), 0 0 24px var(--tone); }
+  .step.now .node { color: #fff; }
+  .t-day { --tone: var(--day); } .t-dusk { --tone: var(--dusk); } .t-night { --tone: var(--night); }
+
+  .card {
+    position: relative; overflow: hidden;
+    background: var(--surface); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--tone); }
+  .step.now .card { outline: 2px solid var(--tone); }
+  .step.done .card { opacity: .5; }
+  .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .moment { margin: 0; font-weight: 800; color: var(--tone); font-size: 14px; }
+  .time { font: 800 26px/1 Unbounded, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .card h3 { font: 800 22px/1.15 Unbounded, sans-serif; letter-spacing: -.02em; margin: 8px 0 0; }
+  .card h3.tbd { color: var(--night); }
+  .addr { margin: 5px 0 0; font-size: 14px; color: var(--muted); }
+  .note { margin: 10px 0 0; font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; text-decoration: none;
+    font: 800 13.5px/1 Manrope, sans-serif; padding: 10px 14px; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink); transition: transform .15s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn.primary { background: var(--ink); color: var(--bg); }
+  .btn.ta { background: #34E0A1; color: #00291B; }
+  .btn.check[aria-pressed="true"] { background: var(--tone); color: #fff; }
+  .btn:focus-visible, .tab:focus-visible, .stop-btn:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--dusk); outline-offset: 2px;
+  }
+
+  /* ---------- Itinéraire : plan + menu à droite ---------- */
+  .route-layout {
+    display: grid; grid-template-columns: 1fr 360px; gap: 16px;
+    height: min(78vh, 760px); min-height: 520px;
+  }
+  .map-box { position: relative; border-radius: 28px; overflow: hidden; box-shadow: var(--shadow); background: var(--surface-2); }
+  #map { position: absolute; inset: 0; }
+  .map-badge {
+    position: absolute; z-index: 500; left: 14px; top: 14px; pointer-events: none;
+    background: rgba(11,8,38,.72); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px; padding: 10px 14px; font-size: 13px; font-weight: 700;
+  }
+  .map-badge strong { font: 800 15px/1.2 Unbounded, sans-serif; display: block; }
+  .side {
+    background: var(--surface); border-radius: 28px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .side-head { padding: 18px 20px 10px; }
+  .side-head h2 { margin: 0; font: 800 18px/1.2 Unbounded, sans-serif; }
+  .side-head p { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .side ol { list-style: none; margin: 0; padding: 4px 10px 12px; overflow-y: auto; flex: 1; }
+  .stop-btn {
+    width: 100%; text-align: left; display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center;
+    background: transparent; border: 0; color: var(--ink); cursor: pointer; padding: 10px; border-radius: 16px;
+    font: inherit;
+  }
+  .stop-btn:hover { background: var(--surface-2); }
+  .stop-btn[aria-current="true"] { background: color-mix(in srgb, var(--tone) 16%, var(--surface)); }
+  .num {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--tone); color: #fff; font: 800 13px/1 Unbounded, sans-serif;
+  }
+  .stop-name { font-weight: 800; font-size: 15px; line-height: 1.2; }
+  .stop-name small { display: block; font-weight: 600; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .stop-time { font: 800 14px/1 Unbounded, sans-serif; color: var(--tone); }
+  .stop-detail { padding: 2px 10px 12px 54px; }
+  .stop-detail .actions { margin-top: 4px; }
+  .near-title { margin: 12px 0 6px; font-size: 12.5px; font-weight: 800; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: 700 12.5px/1 Manrope, sans-serif; text-decoration: none; padding: 8px 10px; border-radius: 10px;
+    border: 1px solid var(--line); color: var(--ink);
+  }
+  .chip:hover { border-color: var(--tone); color: var(--tone); }
+  .hint { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+
+  @media (max-width: 900px) {
+    .route-layout { grid-template-columns: 1fr; height: auto; min-height: 0; }
+    .map-box { height: 58vh; min-height: 360px; }
+    .side ol { overflow: visible; }
+  }
+
+  .osm-tiles { filter: saturate(.75) contrast(1.02); }
+  @media (prefers-color-scheme: dark) {
+    .osm-tiles { filter: invert(1) hue-rotate(200deg) brightness(.82) contrast(.92) saturate(.55); }
+  }
+  /* Marqueurs */
+  .pin {
+    width: 36px; height: 36px; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg);
+    display: grid; place-items: center; border: 3px solid #fff;
+    box-shadow: 0 6px 16px rgba(0,0,0,.35), 0 0 0 0 var(--c);
+    background: var(--c);
+  }
+  .pin span { transform: rotate(45deg); color: #fff; font: 800 13px/1 Unbounded, sans-serif; }
+  .pin.active { box-shadow: 0 6px 16px rgba(0,0,0,.35), 0 0 0 8px color-mix(in srgb, var(--c) 35%, transparent); }
+  .leaflet-popup-content-wrapper { border-radius: 18px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .leaflet-popup-tip { background: var(--surface); }
+  .leaflet-popup-content { margin: 14px 16px; font: 600 14px/1.4 Manrope, sans-serif; }
+  .leaflet-popup-content strong { font: 800 15px/1.2 Unbounded, sans-serif; display: block; margin-bottom: 2px; }
+  .leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+  .leaflet-control-zoom a { background: var(--surface) !important; color: var(--ink) !important; border-color: var(--line) !important; }
+  .leaflet-control-attribution { font-size: 10px; }
+
+  /* ---------- Fenêtre de modification ---------- */
+  dialog {
+    border: 0; padding: 0; width: min(560px, 100%); max-width: 100%;
+    margin: auto auto 0; border-radius: 30px 30px 0 0; background: var(--surface); color: var(--ink);
+  }
+  @media (min-width: 640px) { dialog { margin: auto; border-radius: 30px; } }
+  dialog::backdrop { background: rgba(8, 5, 30, .6); backdrop-filter: blur(6px); }
+  dialog form { display: grid; gap: 12px; padding: 26px 22px calc(22px + env(safe-area-inset-bottom, 0px)); }
+  dialog h2 { font: 800 22px/1.2 Unbounded, sans-serif; margin: 0 0 4px; }
+  dialog label { display: grid; gap: 6px; font-size: 13px; font-weight: 800; color: var(--muted); }
+  input, textarea {
+    font: 600 16px/1.4 Manrope, sans-serif; color: var(--ink); background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 14px; padding: 12px; width: 100%;
+  }
+  textarea { min-height: 72px; resize: vertical; }
+
+  footer { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: var(--muted); font-size: 14px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    h1 { animation: sweep 2.4s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes sweep { from { background-position: 100% 0; opacity: 0; transform: translateY(18px); } 30% { opacity: 1; } to { background-position: 0 0; transform: none; } }
+    .step.now .node::before { animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 14px transparent, 0 0 30px var(--tone); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .tabs .pill { transition: none; } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="blob b1" aria-hidden="true"></div>
+  <div class="blob b2" aria-hidden="true"></div>
+  <div class="blob b3" aria-hidden="true"></div>
+  <div class="hero-inner">
+    <p class="kicker">Vendredi 4 décembre 2026</p>
+    <h1>Lille</h1>
+    <div class="hero-row">
+      <div class="glass counter">
+        <span class="counter-big" id="big">--</span>
+        <p id="next"></p>
+      </div>
+      <div class="glass fact"><strong>Voiture</strong><span>Parking au métro CHU-Eurasanté, terminus ligne 1</span></div>
+      <div class="glass fact"><strong>Samedi</strong><span>On rejoint les autres amis</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <div class="tabs" role="tablist" aria-label="Sections" id="tabs">
+    <span class="pill" aria-hidden="true"></span>
+    <button class="tab" role="tab" id="tab-timing" aria-controls="timing" data-tab="timing">Timing</button>
+    <button class="tab" role="tab" id="tab-itineraire" aria-controls="itineraire" data-tab="itineraire">Itinéraire</button>
+  </div>
+</div>
+
+<main>
+  <section class="panel" id="timing" role="tabpanel" aria-labelledby="tab-timing">
+    <div class="timing-wrap"><ol class="timeline" id="timeline"></ol></div>
+  </section>
+
+  <section class="panel" id="itineraire" role="tabpanel" aria-labelledby="tab-itineraire" hidden>
+    <div class="route-layout">
+      <div class="map-box">
+        <div id="map" role="region" aria-label="Plan de Lille avec les étapes"></div>
+        <div class="map-badge" id="map-badge"></div>
+      </div>
+      <aside class="side" aria-label="Étapes de la journée">
+        <div class="side-head">
+          <h2>La journée</h2>
+          <p>Touchez une étape pour la voir sur le plan.</p>
+        </div>
+        <ol id="side-list"></ol>
+      </aside>
+    </div>
+  </section>
+
+  <footer>
+    <button type="button" class="btn" id="reset">Revenir au planning d’origine</button>
+    <span>Les modifications restent sur cet appareil.</span>
+  </footer>
+</main>
+
+<dialog id="editor">
+  <form method="dialog" id="edit-form">
+    <h2 id="edit-title">Modifier</h2>
+    <label>Heure<input name="time" type="time" required></label>
+    <label>Lieu<input name="name" placeholder="Nom du restaurant"></label>
+    <label>Adresse<input name="addr" placeholder="Rue, numéro"></label>
+    <label>Note<textarea name="note" placeholder="Réservation, métro, idée…"></textarea></label>
+    <div class="actions">
+      <button type="submit" class="btn primary" value="save">Enregistrer</button>
+      <button type="submit" class="btn" value="cancel" formnovalidate>Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const STORE_KEY = "lille-planning-v2";
+
+const DEFAULT_STEPS = [
+  { id: "parking", time: "11:30", moment: "Arrivée", name: "Parking métro CHU-Eurasanté", addr: "Terminus ligne 1", note: "Ligne 1 direction 4 Cantons, descendre à Rihour (environ 15 min).", lat: 50.6107, lng: 3.0352 },
+  { id: "hotel", time: "12:15", moment: "Bagages", name: "Lille City Hotel", addr: "57 Rue de Béthune, 59800 Lille", note: "Dépôt des bagages à la bagagerie, la chambre est disponible à partir de 14h.", lat: 50.6347, lng: 3.0613 },
+  { id: "midi", time: "13:00", moment: "Midi", name: "", addr: "", note: "" },
+  { id: "citadelle", time: "14:45", moment: "Après-midi", name: "Balade à la Citadelle", addr: "Citadelle de Lille", note: "Tour par le bois de Boulogne et le bord de la Deûle.", lat: 50.6415, lng: 3.0443 },
+  { id: "gouter", time: "16:45", moment: "Goûter", name: "Gaufre chez Méert", addr: "27 Rue Esquermoise, 59000 Lille", note: "Métro Rihour.", lat: 50.6378, lng: 3.0612 },
+  { id: "apero", time: "18:30", moment: "Apéro", name: "La Capsule", addr: "25 Rue des Trois Mollettes, Lille", note: "", lat: 50.6411, lng: 3.0635 },
+  { id: "diner", time: "20:30", moment: "Dîner", name: "", addr: "", note: "" },
+  { id: "digeo", time: "22:30", moment: "Digeo", name: "Maloot", addr: "3 Rue de la Barre, 59800 Lille", note: "", lat: 50.6394, lng: 3.0596 },
+  { id: "nuit", time: "00:00", moment: "Nuit", name: "Le Baron", addr: "30 Rue Pierre Mauroy, 59000 Lille", note: "Club techno, ouvre vers 23h45.", lat: 50.6370, lng: 3.0655 }
+];
+
+const NEARBY = ["Boulangerie", "Pharmacie", "Distributeur", "Supérette", "Tabac", "Café"];
+const TA_LILLE_RESTOS = "https://www.tripadvisor.fr/Restaurants-g187178-Lille_Nord_Hauts_de_France.html";
+
+let state = load();
+let editingId = null;
+let selectedId = null;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { const s = JSON.parse(raw); if (Array.isArray(s.steps)) return s; }
+  } catch (e) {}
+  return { steps: structuredClone(DEFAULT_STEPS), done: {} };
+}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* ---------- Temps ---------- */
+const DAY_START = new Date(2026, 11, 4, 6, 0);
+const DAY_END = new Date(2026, 11, 5, 6, 0);
+function phase() { const d = new Date(); return d < DAY_START ? "avant" : d >= DAY_END ? "apres" : "jour"; }
+function daysLeft() { const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(2026, 11, 4) - t) / 86400000); }
+function minutes(t) { const [h, m] = (t || "00:00").split(":").map(Number); const v = h * 60 + (m || 0); return h < 6 ? v + 1440 : v; }
+function nowMinutes() {
+  const p = phase(); if (p === "avant") return -1; if (p === "apres") return 99999;
+  const d = new Date(); const v = d.getHours() * 60 + d.getMinutes(); return d.getHours() < 6 ? v + 1440 : v;
+}
+function tone(t) { const m = minutes(t); return m < 17 * 60 ? "t-day" : m < 21 * 60 ? "t-dusk" : "t-night"; }
+function toneColor(t) { return getComputedStyle(document.documentElement).getPropertyValue("--" + tone(t).slice(2)).trim(); }
+
+/* ---------- Liens ---------- */
+function place(s) { return [s.name, s.addr, "Lille"].filter(Boolean).join(", "); }
+const enc = encodeURIComponent;
+function mapUrl(s) { return "https://www.google.com/maps/search/?api=1&query=" + enc(place(s)); }
+function taUrl(s) { return "https://www.tripadvisor.fr/Search?q=" + enc(s.name + " Lille"); }
+function dirUrl(a, b, mode) { return `https://www.google.com/maps/dir/?api=1&origin=${enc(place(a))}&destination=${enc(place(b))}&travelmode=${mode}`; }
+function nearUrl(k, s) { return "https://www.google.com/maps/search/?api=1&query=" + enc(k + " près de " + place(s)); }
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function sorted() { return [...state.steps].sort((a, b) => minutes(a.time) - minutes(b.time)); }
+const label = s => s.name || "Restaurant à choisir";
+
+/* ---------- Onglet Timing ---------- */
+function renderTiming() {
+  const steps = sorted(), n = nowMinutes();
+  let currentId = null; steps.forEach(s => { if (minutes(s.time) <= n) currentId = s.id; });
+
+  document.getElementById("timeline").innerHTML = steps.map((s, i) => {
+    const done = !!state.done[s.id], tbd = !s.name;
+    const cls = ["step", tone(s.time), done ? "done" : "", s.id === currentId && !done ? "now" : ""].join(" ");
+    return `<li class="${cls}">
+      <span class="node" aria-hidden="true">${i + 1}</span>
+      <div class="card">
+        <div class="card-top"><p class="moment">${esc(s.moment)}</p><span class="time">${esc(s.time)}</span></div>
+        <h3 class="${tbd ? "tbd" : ""}">${esc(label(s))}</h3>
+        ${s.addr ? `<p class="addr">${esc(s.addr)}</p>` : ""}
+        ${s.note ? `<p class="note">${esc(s.note)}</p>` : ""}
+        <div class="actions">
+          ${tbd ? `<a class="btn ta" href="${TA_LILLE_RESTOS}" target="_blank" rel="noopener">Idées TripAdvisor</a>`
+                : `<button type="button" class="btn primary" data-show="${s.id}">Voir sur le plan</button>
+                   <a class="btn ta" href="${taUrl(s)}" target="_blank" rel="noopener">TripAdvisor</a>`}
+          <button type="button" class="btn" data-edit="${s.id}">${tbd ? "Choisir" : "Modifier"}</button>
+          <button type="button" class="btn check" data-done="${s.id}" aria-pressed="${done}">${done ? "Fait ✓" : "Fait ?"}</button>
+        </div>
+      </div>
+    </li>`;
+  }).join("");
+
+  const upcoming = steps.find(s => !state.done[s.id] && minutes(s.time) > n);
+  const p = phase(), big = document.getElementById("big");
+  let txt;
+  if (p === "avant") {
+    const j = daysLeft();
+    big.textContent = j <= 0 ? "J" : "J-" + j;
+    txt = j <= 1 ? "C’est demain ! Rendez-vous à 11h30 au parking CHU-Eurasanté." : "avant le départ pour Lille.";
+  } else if (p === "apres") {
+    big.textContent = "✓"; txt = "Journée terminée. Place aux retrouvailles de samedi !";
+  } else {
+    const d = new Date();
+    big.textContent = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    txt = upcoming ? `Ensuite à ${upcoming.time} : ${label(upcoming)}.` : "Samedi, on rejoint les amis !";
+  }
+  const toChoose = steps.filter(s => !s.name).map(s => s.moment.toLowerCase());
+  if (toChoose.length && p !== "apres") txt += ` À définir : ${toChoose.join(" et ")}.`;
+  document.getElementById("next").textContent = txt;
+}
+
+/* ---------- Onglet Itinéraire ---------- */
+let map, markerLayer, lineLayer, tiles;
+const markers = {};
+
+function initMap() {
+  if (map || !window.L) return;
+  map = L.map("map", { zoomControl: false, scrollWheelZoom: true, attributionControl: true }).setView([50.633, 3.056], 13);
+  const dark = matchMedia("(prefers-color-scheme: dark)");
+  // Fond OpenStreetMap, gratuit et sans clé. En mode sombre, il est assombri par un filtre CSS.
+  tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, className: "osm-tiles",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+  dark.addEventListener?.("change", () => drawMap());
+  L.control.zoom({ position: "bottomright" }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  lineLayer = L.layerGroup().addTo(map);
+  drawMap(true);
+}
+
+function drawMap(fit) {
+  if (!map) return;
+  markerLayer.clearLayers(); lineLayer.clearLayers();
+  const steps = sorted();
+  const located = [];
+  steps.forEach((s, i) => {
+    if (s.lat == null) return;
+    const c = toneColor(s.time);
+    const icon = L.divIcon({
+      className: "", iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -34],
+      html: `<div class="pin ${s.id === selectedId ? "active" : ""}" style="--c:${c}"><span>${i + 1}</span></div>`
+    });
+    const m = L.marker([s.lat, s.lng], { icon, title: label(s) }).addTo(markerLayer);
+    m.bindPopup(`<strong>${esc(label(s))}</strong>${esc(s.time)} · ${esc(s.moment)}${s.addr ? "<br>" + esc(s.addr) : ""}`);
+    m.on("click", () => select(s.id, false));
+    markers[s.id] = m;
+    located.push(s);
+  });
+  for (let i = 1; i < located.length; i++) {
+    const a = located[i - 1], b = located[i];
+    L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color: toneColor(b.time), weight: 4, opacity: .85, dashArray: "2 9", lineCap: "round" }).addTo(lineLayer);
+  }
+  if (fit && located.length) map.fitBounds(L.latLngBounds(located.map(s => [s.lat, s.lng])), { padding: [40, 40] });
+  const n = located.length, total = steps.length;
+  document.getElementById("map-badge").innerHTML = `<strong>${n} étapes sur le plan</strong>${total - n ? `${total - n} à placer une fois l’adresse saisie` : "Toute la journée est placée"}`;
+}
+
+function renderSide() {
+  const steps = sorted();
+  document.getElementById("side-list").innerHTML = steps.map((s, i) => {
+    const prev = steps[i - 1], open = s.id === selectedId, tbd = !s.name;
+    return `<li class="${tone(s.time)}">
+      <button type="button" class="stop-btn" data-select="${s.id}" aria-current="${open}" aria-expanded="${open}">
+        <span class="num">${i + 1}</span>
+        <span class="stop-name">${esc(label(s))}<small>${esc(s.moment)}</small></span>
+        <span class="stop-time">${esc(s.time)}</span>
+      </button>
+      ${open ? `<div class="stop-detail">
+        ${s.addr ? `<p class="hint">${esc(s.addr)}</p>` : ""}
+        ${tbd ? `<p class="hint">Choisissez le restaurant dans l’onglet Timing pour le placer sur le plan.</p>
+                 <div class="actions"><a class="btn ta" href="${TA_LILLE_RESTOS}" target="_blank" rel="noopener">Idées TripAdvisor</a></div>` : `
+        <div class="actions">
+          <a class="btn primary" href="${mapUrl(s)}" target="_blank" rel="noopener">Google Maps</a>
+          <a class="btn ta" href="${taUrl(s)}" target="_blank" rel="noopener">TripAdvisor</a>
+        </div>
+        ${prev && prev.name ? `<p class="near-title">Depuis ${esc(prev.name)}</p>
+        <div class="actions">
+          <a class="btn" href="${dirUrl(prev, s, "walking")}" target="_blank" rel="noopener">À pied</a>
+          <a class="btn" href="${dirUrl(prev, s, "transit")}" target="_blank" rel="noopener">Métro / tram</a>
+        </div>` : ""}
+        <p class="near-title">Commerces à proximité</p>
+        <div class="chips">${NEARBY.map(k => `<a class="chip" href="${nearUrl(k, s)}" target="_blank" rel="noopener">${k}</a>`).join("")}</div>`}
+      </div>` : ""}
+    </li>`;
+  }).join("");
+}
+
+function select(id, fly = true) {
+  selectedId = selectedId === id && fly ? null : id;
+  renderSide(); drawMap(false);
+  const s = state.steps.find(x => x.id === id);
+  if (map && s && s.lat != null && selectedId) {
+    if (fly) map.flyTo([s.lat, s.lng], 16, { duration: .8 });
+    markers[id]?.openPopup();
+  }
+  document.querySelector(`[data-select="${id}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+document.getElementById("side-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-select]"); if (b) select(b.dataset.select);
+});
+
+/* Géolocalisation d'une adresse saisie (restaurants) */
+async function geocode(s) {
+  if (!s.addr && !s.name) return;
+  try {
+    const q = enc([s.addr || s.name, "Lille"].join(", "));
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr&q=${q}`, { headers: { "Accept-Language": "fr" } });
+    const [hit] = await r.json();
+    if (hit) { s.lat = +hit.lat; s.lng = +hit.lon; save(); drawMap(false); renderSide(); }
+  } catch (e) {}
+}
+
+/* ---------- Onglets ---------- */
+function showTab(name) {
+  if (!["timing", "itineraire"].includes(name)) name = "timing";
+  document.getElementById("tabs").dataset.active = name;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== name);
+  if (name === "itineraire") { initMap(); renderSide(); setTimeout(() => map && map.invalidateSize(), 60); }
+}
+function go(name) { history.replaceState(null, "", "#" + name); showTab(name); }
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => go(t.dataset.tab)));
+window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+
+/* ---------- Modification ---------- */
+const dlg = document.getElementById("editor"), form = document.getElementById("edit-form");
+document.getElementById("timeline").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.done) { state.done[b.dataset.done] = !state.done[b.dataset.done]; save(); renderTiming(); }
+  if (b.dataset.show) { go("itineraire"); setTimeout(() => { selectedId = null; select(b.dataset.show); }, 120); window.scrollTo({ top: document.querySelector(".tabs-bar").offsetTop - 10, behavior: "smooth" }); }
+  if (b.dataset.edit) {
+    const s = state.steps.find(x => x.id === b.dataset.edit);
+    editingId = s.id;
+    document.getElementById("edit-title").textContent = s.moment;
+    form.time.value = s.time; form.name.value = s.name; form.addr.value = s.addr; form.note.value = s.note;
+    dlg.showModal(); form.name.focus();
+  }
+});
+dlg.addEventListener("close", () => {
+  if (dlg.returnValue === "save" && editingId) {
+    const s = state.steps.find(x => x.id === editingId);
+    const placeChanged = s.addr !== form.addr.value.trim() || s.name !== form.name.value.trim();
+    s.time = form.time.value || s.time;
+    s.name = form.name.value.trim(); s.addr = form.addr.value.trim(); s.note = form.note.value.trim();
+    if (placeChanged) { delete s.lat; delete s.lng; }
+    save(); render();
+    if (placeChanged) geocode(s);
+  }
+  editingId = null;
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (confirm("Effacer vos modifications et revenir au planning d’origine ?")) {
+    state = { steps: structuredClone(DEFAULT_STEPS), done: {} }; selectedId = null; save(); render(); drawMap(true);
+  }
+});
+
+function render() { renderTiming(); if (map) { renderSide(); drawMap(false); } }
+
+showTab(location.hash.slice(1));
+render();
+setInterval(() => { if (!dlg.open) renderTiming(); }, 30000);
+</script>
+</body>
+</html>
