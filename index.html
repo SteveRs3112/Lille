@@ -216,10 +216,6 @@
     .side ol { overflow: visible; }
   }
 
-  .osm-tiles { filter: saturate(.75) contrast(1.02); }
-  @media (prefers-color-scheme: dark) {
-    .osm-tiles { filter: invert(1) hue-rotate(200deg) brightness(.82) contrast(.92) saturate(.55); }
-  }
   /* Marqueurs */
   .pin {
     width: 36px; height: 36px; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg);
@@ -334,11 +330,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-const STORE_KEY = "lille-planning-v2";
+const STORE_KEY = "lille-planning-v3";
+const ROUTE_KEY = "lille-routes-v1";
 
 const DEFAULT_STEPS = [
-  { id: "parking", time: "11:30", moment: "Arrivée", name: "Parking métro CHU-Eurasanté", addr: "Terminus ligne 1", note: "Ligne 1 direction 4 Cantons, descendre à Rihour (environ 15 min).", lat: 50.6107, lng: 3.0352 },
-  { id: "hotel", time: "12:15", moment: "Bagages", name: "Lille City Hotel", addr: "57 Rue de Béthune, 59800 Lille", note: "Dépôt des bagages à la bagagerie, la chambre est disponible à partir de 14h.", lat: 50.6347, lng: 3.0613 },
+  { id: "parking", time: "11:30", moment: "Arrivée", name: "Parking métro CHU-Eurasanté", addr: "J25Q+6H Lille", plus: true, note: "Ligne 1 direction 4 Cantons, descendre à Rihour (environ 15 min).", lat: 50.60806, lng: 3.03894 },
+  { id: "hotel", via: "metro", time: "12:15", moment: "Bagages", name: "Lille City Hotel", addr: "57 Rue de Béthune, 59800 Lille", note: "Dépôt des bagages à la bagagerie, la chambre est disponible à partir de 14h.", lat: 50.6347, lng: 3.0613 },
   { id: "midi", time: "13:00", moment: "Midi", name: "", addr: "", note: "" },
   { id: "citadelle", time: "14:45", moment: "Après-midi", name: "Balade à la Citadelle", addr: "Citadelle de Lille", note: "Tour par le bois de Boulogne et le bord de la Deûle.", lat: 50.6415, lng: 3.0443 },
   { id: "gouter", time: "16:45", moment: "Goûter", name: "Gaufre chez Méert", addr: "27 Rue Esquermoise, 59000 Lille", note: "Métro Rihour.", lat: 50.6378, lng: 3.0612 },
@@ -358,7 +355,15 @@ let selectedId = null;
 function load() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) { const s = JSON.parse(raw); if (Array.isArray(s.steps)) return s; }
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (Array.isArray(s.steps)) {
+        const fresh = DEFAULT_STEPS.find(x => x.id === "parking");
+        const p = s.steps.find(x => x.id === "parking");
+        if (p && !p.plus) Object.assign(p, { addr: fresh.addr, plus: true, lat: fresh.lat, lng: fresh.lng });
+        return s;
+      }
+    }
   } catch (e) {}
   return { steps: structuredClone(DEFAULT_STEPS), done: {} };
 }
@@ -378,7 +383,7 @@ function tone(t) { const m = minutes(t); return m < 17 * 60 ? "t-day" : m < 21 *
 function toneColor(t) { return getComputedStyle(document.documentElement).getPropertyValue("--" + tone(t).slice(2)).trim(); }
 
 /* ---------- Liens ---------- */
-function place(s) { return [s.name, s.addr, "Lille"].filter(Boolean).join(", "); }
+function place(s) { return s.plus ? s.addr : [s.name, s.addr, "Lille"].filter(Boolean).join(", "); }
 const enc = encodeURIComponent;
 function mapUrl(s) { return "https://www.google.com/maps/search/?api=1&query=" + enc(place(s)); }
 function taUrl(s) { return "https://www.tripadvisor.fr/Search?q=" + enc(s.name + " Lille"); }
@@ -439,18 +444,27 @@ const markers = {};
 
 function initMap() {
   if (map || !window.L) return;
-  map = L.map("map", { zoomControl: false, scrollWheelZoom: true, attributionControl: true }).setView([50.633, 3.056], 13);
+  map = L.map("map", { zoomControl: false, maxZoom: 16, scrollWheelZoom: true, attributionControl: true }).setView([50.633, 3.056], 13);
   const dark = matchMedia("(prefers-color-scheme: dark)");
-  // Fond OpenStreetMap, gratuit et sans clé. En mode sombre, il est assombri par un filtre CSS.
-  tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, className: "osm-tiles",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-  dark.addEventListener?.("change", () => drawMap());
+  // Fond Esri gris clair / gris foncé : gratuit, sans clé, fonctionne aussi en ouvrant le fichier en local
+  const esri = name => `https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${name}/MapServer/tile/{z}/{y}/{x}`;
+  let labels;
+  const setTiles = () => {
+    if (tiles) map.removeLayer(tiles);
+    if (labels) map.removeLayer(labels);
+    const d = dark.matches ? "Dark" : "Light";
+    tiles = L.tileLayer(esri(`World_${d}_Gray_Base`), {
+      maxZoom: 16, maxNativeZoom: 16, attribution: "Fond de carte &copy; Esri, HERE, Garmin, &copy; contributeurs OpenStreetMap"
+    }).addTo(map);
+    labels = L.tileLayer(esri(`World_${d}_Gray_Reference`), { maxZoom: 16, maxNativeZoom: 16, pane: "overlayPane" }).addTo(map);
+  };
+  setTiles();
+  dark.addEventListener?.("change", () => { setTiles(); drawMap(); });
   L.control.zoom({ position: "bottomright" }).addTo(map);
   markerLayer = L.layerGroup().addTo(map);
   lineLayer = L.layerGroup().addTo(map);
   drawMap(true);
+  computeLegs();
 }
 
 function drawMap(fit) {
@@ -471,13 +485,28 @@ function drawMap(fit) {
     markers[s.id] = m;
     located.push(s);
   });
-  for (let i = 1; i < located.length; i++) {
-    const a = located[i - 1], b = located[i];
-    L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color: toneColor(b.time), weight: 4, opacity: .85, dashArray: "2 9", lineCap: "round" }).addTo(lineLayer);
-  }
+  // Tronçons entre deux étapes consécutives, toutes deux placées sur le plan
+  steps.forEach((b, i) => {
+    const a = steps[i - 1];
+    if (!a || a.lat == null || b.lat == null) return;
+    const color = toneColor(b.time);
+    const leg = legs[legKey(a, b)];
+    if (b.via === "metro") {
+      L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color, weight: 4, opacity: .9, dashArray: "1 10", lineCap: "round" })
+        .bindTooltip("Métro ligne 1", { sticky: true }).addTo(lineLayer);
+    } else if (leg && leg.coords) {
+      L.polyline(leg.coords, { color: "#fff", weight: 9, opacity: .9, lineJoin: "round" }).addTo(lineLayer);
+      L.polyline(leg.coords, { color, weight: 5, opacity: 1, lineJoin: "round", lineCap: "round" })
+        .bindTooltip(`${fmtMin(leg.duration)} à pied · ${fmtKm(leg.distance)}`, { sticky: true }).addTo(lineLayer);
+    } else {
+      L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { color, weight: 3, opacity: .6, dashArray: "2 9" }).addTo(lineLayer);
+    }
+  });
   if (fit && located.length) map.fitBounds(L.latLngBounds(located.map(s => [s.lat, s.lng])), { padding: [40, 40] });
   const n = located.length, total = steps.length;
-  document.getElementById("map-badge").innerHTML = `<strong>${n} étapes sur le plan</strong>${total - n ? `${total - n} à placer une fois l’adresse saisie` : "Toute la journée est placée"}`;
+  const walked = steps.map((b, i) => i && b.via !== "metro" ? legs[legKey(steps[i - 1], b)] : null).filter(l => l && l.coords);
+  const km = walked.reduce((t, l) => t + l.distance, 0), min = walked.reduce((t, l) => t + l.duration, 0);
+  document.getElementById("map-badge").innerHTML = `<strong>${walked.length ? `${fmtKm(km)} à pied · ${fmtMin(min)}` : `${n} étapes sur le plan`}</strong>${total - n ? `${total - n} étape(s) à placer une fois l’adresse saisie` : "Toute la journée est placée"}`;
 }
 
 function renderSide() {
@@ -487,7 +516,7 @@ function renderSide() {
     return `<li class="${tone(s.time)}">
       <button type="button" class="stop-btn" data-select="${s.id}" aria-current="${open}" aria-expanded="${open}">
         <span class="num">${i + 1}</span>
-        <span class="stop-name">${esc(label(s))}<small>${esc(s.moment)}</small></span>
+        <span class="stop-name">${esc(label(s))}<small>${esc(s.moment)}${prev ? legText(prev, s) : ""}</small></span>
         <span class="stop-time">${esc(s.time)}</span>
       </button>
       ${open ? `<div class="stop-detail">
@@ -498,7 +527,7 @@ function renderSide() {
           <a class="btn primary" href="${mapUrl(s)}" target="_blank" rel="noopener">Google Maps</a>
           <a class="btn ta" href="${taUrl(s)}" target="_blank" rel="noopener">TripAdvisor</a>
         </div>
-        ${prev && prev.name ? `<p class="near-title">Depuis ${esc(prev.name)}</p>
+        ${prev && prev.name ? `<p class="near-title">Depuis ${esc(prev.name)}${legText(prev, s)}</p>
         <div class="actions">
           <a class="btn" href="${dirUrl(prev, s, "walking")}" target="_blank" rel="noopener">À pied</a>
           <a class="btn" href="${dirUrl(prev, s, "transit")}" target="_blank" rel="noopener">Métro / tram</a>
@@ -525,6 +554,44 @@ document.getElementById("side-list").addEventListener("click", e => {
   const b = e.target.closest("[data-select]"); if (b) select(b.dataset.select);
 });
 
+
+/* ---------- Itinéraires piétons réels (OpenStreetMap, profil piéton) ---------- */
+let legs = {};
+try { legs = JSON.parse(localStorage.getItem(ROUTE_KEY)) || {}; } catch (e) {}
+function legKey(a, b) { return [a.lat, a.lng, b.lat, b.lng].map(v => (+v).toFixed(5)).join(","); }
+function fmtMin(sec) { const m = Math.max(1, Math.round(sec / 60)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`; }
+function fmtKm(m) { return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`; }
+function legText(a, b) {
+  if (!a || a.lat == null || b.lat == null) return "";
+  if (b.via === "metro") return " · métro ligne 1";
+  const l = legs[legKey(a, b)];
+  return l && l.coords ? ` · ${fmtMin(l.duration)} à pied` : "";
+}
+let routing = false;
+async function computeLegs() {
+  if (routing) return; routing = true;
+  const steps = sorted();
+  for (let i = 1; i < steps.length; i++) {
+    const a = steps[i - 1], b = steps[i];
+    if (a.lat == null || b.lat == null || b.via === "metro") continue;
+    const k = legKey(a, b);
+    if (legs[k]) continue;
+    try {
+      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+      const r = await fetch(url);
+      const j = await r.json();
+      const route = j.routes && j.routes[0];
+      if (route) {
+        // Le serveur compte environ 5 km/h ; on garde sa durée
+        legs[k] = { distance: route.distance, duration: route.duration, coords: route.geometry.coordinates.map(([x, y]) => [y, x]) };
+        try { localStorage.setItem(ROUTE_KEY, JSON.stringify(legs)); } catch (e) {}
+        drawMap(false); renderSide();
+      }
+    } catch (e) {}
+  }
+  routing = false;
+}
+
 /* Géolocalisation d'une adresse saisie (restaurants) */
 async function geocode(s) {
   if (!s.addr && !s.name) return;
@@ -532,7 +599,7 @@ async function geocode(s) {
     const q = enc([s.addr || s.name, "Lille"].join(", "));
     const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr&q=${q}`, { headers: { "Accept-Language": "fr" } });
     const [hit] = await r.json();
-    if (hit) { s.lat = +hit.lat; s.lng = +hit.lon; save(); drawMap(false); renderSide(); }
+    if (hit) { s.lat = +hit.lat; s.lng = +hit.lon; save(); drawMap(false); renderSide(); computeLegs(); }
   } catch (e) {}
 }
 
@@ -581,7 +648,7 @@ document.getElementById("reset").addEventListener("click", () => {
   }
 });
 
-function render() { renderTiming(); if (map) { renderSide(); drawMap(false); } }
+function render() { renderTiming(); if (map) { renderSide(); drawMap(false); computeLegs(); } }
 
 showTab(location.hash.slice(1));
 render();
