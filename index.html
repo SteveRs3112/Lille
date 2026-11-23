@@ -97,21 +97,52 @@
   /* ---------- Onglets ---------- */
   .tabs-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 900; margin-top: -32px; padding: 0 20px; }
   .tabs {
-    position: relative; max-width: 380px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr;
+    position: relative; max-width: 600px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr);
     background: var(--surface); border-radius: 999px; padding: 6px; box-shadow: var(--shadow);
   }
   .tabs .pill {
-    position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc(50% - 6px); border-radius: 999px;
+    position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 4); border-radius: 999px;
     background: linear-gradient(110deg, var(--day), var(--dusk) 55%, var(--night));
     transition: transform .35s cubic-bezier(.3,.9,.3,1);
   }
-  .tabs[data-active="itineraire"] .pill { transform: translateX(100%); }
+  .tabs .pill { transform: translateX(calc(var(--i, 0) * 100%)); }
   .tab {
     position: relative; z-index: 1; border: 0; background: transparent; cursor: pointer;
-    font: 800 15px/1 Manrope, sans-serif; color: var(--muted); padding: 14px 10px; border-radius: 999px;
+    font: 800 15px/1 Manrope, sans-serif; color: var(--muted); padding: 14px 4px; border-radius: 999px; white-space: nowrap;
     transition: color .25s;
   }
   .tab[aria-selected="true"] { color: #fff; }
+  @media (max-width: 480px) { .tab { font-size: 13px; padding: 13px 2px; } .tabs-bar { padding: 0 10px; } }
+
+  /* ---------- Resto & Activités ---------- */
+  .section-head { max-width: 760px; margin: 0 auto 20px; }
+  .section-head h2 { font: 800 clamp(26px, 6vw, 38px)/1.05 Unbounded, sans-serif; letter-spacing: -.03em; margin: 0 0 8px; }
+  .section-head p { margin: 0; color: var(--muted); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .filter {
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+    font: 800 13.5px/1 Manrope, sans-serif; padding: 10px 14px; border-radius: 999px;
+  }
+  .filter[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .tile { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); display: grid; gap: 12px; align-content: start; }
+  .tile[hidden] { display: none; }
+  .tile-head { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+  .tile .thumb { width: 64px; height: 64px; border-radius: 18px; }
+  .tile .thumb svg { width: 34px; height: 34px; }
+  .tile h3 { margin: 0; font: 800 18px/1.2 Unbounded, sans-serif; letter-spacing: -.01em; }
+  .tile .where { margin: 3px 0 0; font-size: 13.5px; color: var(--muted); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .badge { font: 800 12.5px/1 Manrope, sans-serif; padding: 7px 10px; border-radius: 10px; background: var(--surface-2); }
+  .badge.star { background: color-mix(in srgb, var(--tone) 16%, var(--surface)); color: var(--tone); }
+  .hours { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 14px; }
+  .hours dt { font-weight: 800; color: var(--tone); }
+  .hours dd { margin: 0; }
+  .hours dd.closed { color: var(--muted); text-decoration: line-through; }
+  .tile p.desc { margin: 0; font-size: 14.5px; }
+  .tile .actions { margin-top: 0; }
+  .source { max-width: 760px; margin: 20px auto 0; font-size: 13px; color: var(--muted); }
+
 
   main { max-width: 1180px; margin: 0 auto; padding: 34px 20px 64px; }
   .panel[hidden] { display: none; }
@@ -142,6 +173,21 @@
   .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--tone); }
   .step.now .card { outline: 2px solid var(--tone); }
   .step.done .card { opacity: .5; }
+  .card-body { display: grid; grid-template-columns: 84px 1fr; gap: 16px; align-items: start; }
+  .thumb {
+    width: 84px; height: 84px; border-radius: 20px; overflow: hidden; display: grid; place-items: center;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,.35), transparent 55%),
+      linear-gradient(145deg, var(--tone), color-mix(in srgb, var(--tone) 35%, #0B0826));
+    box-shadow: 0 10px 24px color-mix(in srgb, var(--tone) 35%, transparent);
+  }
+  .thumb svg { width: 46px; height: 46px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  @media (max-width: 420px) {
+    .card-body { grid-template-columns: 64px 1fr; gap: 12px; }
+    .thumb { width: 64px; height: 64px; border-radius: 16px; }
+    .thumb svg { width: 36px; height: 36px; }
+  }
   .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   .moment { margin: 0; font-weight: 800; color: var(--tone); font-size: 14px; }
   .time { font: 800 26px/1 Unbounded, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
@@ -274,7 +320,6 @@
         <p id="next"></p>
       </div>
       <div class="glass fact"><strong>Voiture</strong><span>Parking au métro CHU-Eurasanté, terminus ligne 1</span></div>
-      <div class="glass fact"><strong>Samedi</strong><span>On rejoint les autres amis</span></div>
     </div>
   </div>
 </header>
@@ -284,6 +329,8 @@
     <span class="pill" aria-hidden="true"></span>
     <button class="tab" role="tab" id="tab-timing" aria-controls="timing" data-tab="timing">Timing</button>
     <button class="tab" role="tab" id="tab-itineraire" aria-controls="itineraire" data-tab="itineraire">Itinéraire</button>
+    <button class="tab" role="tab" id="tab-resto" aria-controls="resto" data-tab="resto">Resto</button>
+    <button class="tab" role="tab" id="tab-activites" aria-controls="activites" data-tab="activites">Activités</button>
   </div>
 </div>
 
@@ -308,6 +355,32 @@
     </div>
   </section>
 
+
+  <section class="panel" id="resto" role="tabpanel" aria-labelledby="tab-resto" hidden>
+    <div class="section-head">
+      <h2>Resto du week-end</h2>
+      <p>Les adresses repérées pour samedi et dimanche, avec leurs horaires. Pensez à réserver, ils sont souvent complets.</p>
+      <div class="filters" id="resto-filters">
+        <button type="button" class="filter" data-f="all" aria-pressed="true">Tous</button>
+        <button type="button" class="filter" data-f="satM" aria-pressed="false">Samedi midi</button>
+        <button type="button" class="filter" data-f="satS" aria-pressed="false">Samedi soir</button>
+        <button type="button" class="filter" data-f="sunM" aria-pressed="false">Dimanche midi</button>
+        <button type="button" class="filter" data-f="sunS" aria-pressed="false">Dimanche soir</button>
+      </div>
+    </div>
+    <div class="grid" id="resto-list"></div>
+    <p class="source">Horaires et notes relevés sur Google en novembre 2026. Vérifiez avant de réserver, ils peuvent changer.</p>
+  </section>
+
+  <section class="panel" id="activites" role="tabpanel" aria-labelledby="tab-activites" hidden>
+    <div class="section-head">
+      <h2>Activités</h2>
+      <p>Les incontournables de Lille et quelques idées pour un week-end entre amis, en pleine période de Noël.</p>
+    </div>
+    <div class="grid" id="activity-list"></div>
+    <p class="source">Plus d’idées sur le site de l’office de tourisme : <a href="https://www.lilletourism.com/" target="_blank" rel="noopener">lilletourism.com</a>. Horaires et tarifs à confirmer avant de vous déplacer.</p>
+  </section>
+
   <footer>
     <button type="button" class="btn" id="reset">Revenir au planning d’origine</button>
     <span>Les modifications restent sur cet appareil.</span>
@@ -321,6 +394,7 @@
     <label>Lieu<input name="name" placeholder="Nom du restaurant"></label>
     <label>Adresse<input name="addr" placeholder="Rue, numéro"></label>
     <label>Note<textarea name="note" placeholder="Réservation, métro, idée…"></textarea></label>
+    <label>Photo (facultatif)<input name="photo" type="url" placeholder="Lien d’une image, https://…"></label>
     <div class="actions">
       <button type="submit" class="btn primary" value="save">Enregistrer</button>
       <button type="submit" class="btn" value="cancel" formnovalidate>Annuler</button>
@@ -336,12 +410,12 @@ const ROUTE_KEY = "lille-routes-v1";
 const DEFAULT_STEPS = [
   { id: "parking", time: "11:30", moment: "Arrivée", name: "Parking métro CHU-Eurasanté", addr: "J25Q+6H Lille", plus: true, note: "Ligne 1 direction 4 Cantons, descendre à Rihour (environ 15 min).", lat: 50.60806, lng: 3.03894 },
   { id: "hotel", via: "metro", time: "12:15", moment: "Bagages", name: "Lille City Hotel", addr: "57 Rue de Béthune, 59800 Lille", note: "Dépôt des bagages à la bagagerie, la chambre est disponible à partir de 14h.", lat: 50.6347, lng: 3.0613 },
-  { id: "midi", time: "13:00", moment: "Midi", name: "", addr: "", note: "" },
+  { id: "midi", time: "13:00", moment: "Midi", name: "Costaud", addr: "17 Place du Vieux Marché aux Chevaux, 59800 Lille", note: "Réservé à 13h via TheFork. À 300 m de l’hôtel.", lat: 50.63266, lng: 3.06354 },
   { id: "citadelle", time: "14:45", moment: "Après-midi", name: "Balade à la Citadelle", addr: "Citadelle de Lille", note: "Tour par le bois de Boulogne et le bord de la Deûle.", lat: 50.6415, lng: 3.0443 },
   { id: "gouter", time: "16:45", moment: "Goûter", name: "Gaufre chez Méert", addr: "27 Rue Esquermoise, 59000 Lille", note: "Métro Rihour.", lat: 50.6378, lng: 3.0612 },
-  { id: "apero", time: "18:30", moment: "Apéro", name: "La Capsule", addr: "25 Rue des Trois Mollettes, Lille", note: "", lat: 50.6411, lng: 3.0635 },
-  { id: "diner", time: "20:30", moment: "Dîner", name: "", addr: "", note: "" },
-  { id: "digeo", time: "22:30", moment: "Digeo", name: "Maloot", addr: "3 Rue de la Barre, 59800 Lille", note: "", lat: 50.6394, lng: 3.0596 },
+  { id: "apero", time: "18:30", moment: "Apéro", name: "La Capsule", addr: "25 Rue des Trois Mollettes, Lille", note: "Bar à bières artisanales, 28 bières à la pression.", lat: 50.6411, lng: 3.0635 },
+  { id: "diner", time: "21:15", moment: "Dîner", name: "La Cour de la Ch’tite Brigitte", addr: "61 Rue de la Monnaie, 59800 Lille", note: "Salle sous verrière dans une cour intérieure.", lat: 50.64121, lng: 3.06235 },
+  { id: "digeo", time: "23:00", moment: "Digeo", name: "Maloot", addr: "3 Rue de la Barre, 59800 Lille", note: "", lat: 50.6394, lng: 3.0596 },
   { id: "nuit", time: "00:00", moment: "Nuit", name: "Le Baron", addr: "30 Rue Pierre Mauroy, 59000 Lille", note: "Club techno, ouvre vers 23h45.", lat: 50.6370, lng: 3.0655 }
 ];
 
@@ -361,6 +435,14 @@ function load() {
         const fresh = DEFAULT_STEPS.find(x => x.id === "parking");
         const p = s.steps.find(x => x.id === "parking");
         if (p && !p.plus) Object.assign(p, { addr: fresh.addr, plus: true, lat: fresh.lat, lng: fresh.lng });
+        const ap = s.steps.find(x => x.id === "apero");
+        if (ap && !ap.note) ap.note = DEFAULT_STEPS.find(x => x.id === "apero").note;
+        const dg = s.steps.find(x => x.id === "digeo");
+        if (dg && dg.time === "22:30") dg.time = "23:00";
+        ["midi", "diner"].forEach(id => {
+          const cur = s.steps.find(x => x.id === id), def = DEFAULT_STEPS.find(x => x.id === id);
+          if (cur && (!cur.name || (id === "midi" && cur.name === "Costaud") || (id === "diner" && cur.name === "Au Vieux de la Vieille"))) Object.assign(cur, def);
+        });
         return s;
       }
     }
@@ -393,6 +475,27 @@ function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;
 function sorted() { return [...state.steps].sort((a, b) => minutes(a.time) - minutes(b.time)); }
 const label = s => s.name || "Restaurant à choisir";
 
+
+/* ---------- Vignettes : une illustration par étape, ou votre photo ---------- */
+const ICONS = {
+  parking: '<rect x="12" y="6" width="24" height="30" rx="7"/><path d="M12 22h24M18 30h.01M30 30h.01M16 36l-4 6M32 36l4 6M18 12h12"/>',
+  hotel: '<rect x="9" y="15" width="30" height="24" rx="4"/><path d="M18 15v-5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5M9 25h30M16 39v3M32 39v3"/>',
+  midi: '<path d="M15 6v14a4 4 0 0 0 4 4v18M11 6v10M19 6v10M32 42V6c-4 3-6 9-6 15 0 3 2 5 6 5"/>',
+  citadelle: '<path d="M24 5l5 9 10-1-4 9 7 7-10 2-2 10-6-7-6 7-2-10-10-2 7-7-4-9 10 1z"/><circle cx="24" cy="24" r="5"/>',
+  gouter: '<rect x="8" y="12" width="32" height="24" rx="6"/><path d="M8 20h32M8 28h32M16 12v24M24 12v24M32 12v24"/>',
+  apero: '<path d="M13 16h18v22a4 4 0 0 1-4 4h-10a4 4 0 0 1-4-4z"/><path d="M31 21h4a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-4M13 16a5 5 0 0 1 5-7 6 6 0 0 1 10 0 5 5 0 0 1 3 7M19 24v12M25 24v12"/>',
+  diner: '<path d="M8 30h32M10 30a14 14 0 0 1 28 0M24 13v3M6 36h36"/><circle cx="24" cy="11" r="2"/>',
+  digeo: '<path d="M10 9h28L24 26zM24 26v14M16 42h16M30 6l4-3"/><circle cx="31" cy="14" r="2"/>',
+  nuit: '<circle cx="24" cy="25" r="13"/><path d="M24 6v6M11 25h26M24 12c-5 4-5 22 0 26M24 12c5 4 5 22 0 26M14 17h20M14 33h20"/>'
+};
+function thumb(s) {
+  const icon = `<svg viewBox="0 0 48 48" aria-hidden="true">${ICONS[s.id] || ICONS.diner}</svg>`;
+  if (s.photo) {
+    return `<div class="thumb"><img src="${esc(s.photo)}" alt="${esc(label(s))}" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.fallback))" data-fallback='${icon}'></div>`;
+  }
+  return `<div class="thumb">${icon}</div>`;
+}
+
 /* ---------- Onglet Timing ---------- */
 function renderTiming() {
   const steps = sorted(), n = nowMinutes();
@@ -404,6 +507,9 @@ function renderTiming() {
     return `<li class="${cls}">
       <span class="node" aria-hidden="true">${i + 1}</span>
       <div class="card">
+       <div class="card-body">
+        ${thumb(s)}
+        <div>
         <div class="card-top"><p class="moment">${esc(s.moment)}</p><span class="time">${esc(s.time)}</span></div>
         <h3 class="${tbd ? "tbd" : ""}">${esc(label(s))}</h3>
         ${s.addr ? `<p class="addr">${esc(s.addr)}</p>` : ""}
@@ -415,6 +521,8 @@ function renderTiming() {
           <button type="button" class="btn" data-edit="${s.id}">${tbd ? "Choisir" : "Modifier"}</button>
           <button type="button" class="btn check" data-done="${s.id}" aria-pressed="${done}">${done ? "Fait ✓" : "Fait ?"}</button>
         </div>
+        </div>
+       </div>
       </div>
     </li>`;
   }).join("");
@@ -603,10 +711,148 @@ async function geocode(s) {
   } catch (e) {}
 }
 
+
+/* ---------- Onglet Resto ---------- */
+const RESTOS = [
+  { name: "Au Vieux de la Vieille", type: "Estaminet flamand", addr: "2 Rue des Vieux Murs, Vieux-Lille", rating: "4,5", reviews: "8 800", tone: "t-night",
+    sat: "11h45–15h · 18h45–minuit", sun: "11h45–15h · 18h45–minuit", open: { satM: 1, satS: 1, sunM: 1, sunS: 1 },
+    desc: "Poutres, vieilles photos et bric-à-brac sur plusieurs étages. Carbonade, welsh, poulet au maroilles.",
+    menu: "https://estaminetlille.fr/nos-estaminets/estaminet-au-vieux-de-la-vieille/", phone: "+33320138164" },
+  { name: "Estaminet La Ch’tite Brigitte", type: "Estaminet flamand", addr: "10 Rue des Bouchers, Vieux-Lille", rating: "4,7", reviews: "8 200", tone: "t-night",
+    sat: "11h45–22h30", sun: "11h45–22h30", open: { satM: 1, satS: 1, sunM: 1, sunS: 1 },
+    desc: "Décor décalé et cuisine flamande sans détour, frites à volonté. Réservation fortement conseillée.",
+    menu: "https://www.chtitebrigitte.com/", phone: "+33345168001" },
+  { name: "Le Bistrot de la Ch’tite Brigitte", type: "Bistrot du Nord", addr: "1 bis Rue Saint-Étienne, centre", rating: "4,6", reviews: "840", tone: "t-dusk",
+    sat: "11h30–23h30", sun: "11h30–23h30", open: { satM: 1, satS: 1, sunM: 1, sunS: 1 },
+    desc: "Grande maison sur trois étages, décor plein de caractère. Ouvert en continu, pratique pour un repas tardif.",
+    menu: "https://www.bistrotdelachtitebrigitte.com/menus-carte/#cat-313390", phone: "+33320296359" },
+  { name: "Les Marmites Lilloises", type: "Bistrot de copains", addr: "6 Rue de Pas, centre", rating: "4,7", reviews: "1 800", tone: "t-dusk",
+    sat: "11h45–22h30", sun: "11h45–22h", open: { satM: 1, satS: 1, sunM: 1, sunS: 1 },
+    desc: "Décor fantaisiste et ambiance conviviale, cuisine française de bistrot.",
+    menu: "https://www.marmiteslilloises.com/menus-carte/#menu-463039", phone: "+33320128530" },
+  { name: "Estaminet Les P’tiots", type: "Estaminet flamand", addr: "35 Rue de Gand, Vieux-Lille", rating: "4,6", reviews: "1 900", tone: "t-night",
+    sat: "11h45–14h30 · 19h–22h", sun: "11h45–14h30 · 19h–21h", open: { satM: 1, satS: 1, sunM: 1, sunS: 1 },
+    desc: "Petite adresse rue de Gand, assiette découverte de quatre spécialités du Nord. Le soir, arriver tôt.",
+    menu: "https://lesptiots.fr/le-menu/", phone: "+33320742268" },
+  { name: "Estaminet Chez Ronny", type: "Estaminet flamand", addr: "80 Rue de Gand, Vieux-Lille", rating: "4,7", reviews: "930", tone: "t-night",
+    sat: "12h–15h30 · 18h30–23h", sun: "12h–14h30", sunClosedEvening: true, open: { satM: 1, satS: 1, sunM: 1, sunS: 0 },
+    desc: "Adresse fréquentée par les Lillois, carte en français, grosses portions. Salles sur deux étages.",
+    menu: "https://www.chez-ronny-estaminet.fr/", phone: "+33320475394" },
+  { name: "Bistrot Franquette", type: "Bistrot & cocktails", addr: "16 Rue du Vert Bois, centre", rating: "4,8", reviews: "880", tone: "t-dusk",
+    sat: "11h–2h", sun: "Fermé", open: { satM: 1, satS: 1, sunM: 0, sunS: 0 },
+    desc: "Petite salle cosy, cuisine de saison et bons cocktails. Peu de tables, réserver.",
+    menu: "https://www.bistrot-franquette.fr/menus-carte/", phone: "+33645678456" },
+  { name: "Costaud", type: "Restaurant & bar", addr: "17 Pl. du Vieux Marché aux Chevaux, République", rating: "4,6", reviews: "540", tone: "t-day",
+    sat: "12h–1h", sun: "Fermé", open: { satM: 1, satS: 1, sunM: 0, sunS: 0 },
+    desc: "Votre adresse du vendredi midi. Cuisine maison soignée, à deux pas du Palais des Beaux-Arts.",
+    menu: "https://www.tripadvisor.fr/Restaurant_Review-g187178-d26616999-Reviews-Costaud-Lille_Nord_Hauts_de_France.html",
+    ta: "https://www.tripadvisor.fr/Restaurant_Review-g187178-d26616999-Reviews-Costaud-Lille_Nord_Hauts_de_France.html", phone: "+33610643436" }
+];
+
+function restoTile(r) {
+  const flags = Object.entries(r.open).filter(([, v]) => v).map(([k]) => k).join(" ");
+  const maps = "https://www.google.com/maps/search/?api=1&query=" + enc(r.name + ", " + r.addr + ", Lille");
+  const ta = r.ta || "https://www.tripadvisor.fr/Search?q=" + enc(r.name + " Lille");
+  return `<article class="tile ${r.tone}" data-open="${flags}">
+    <div class="tile-head">
+      <div class="thumb"><svg viewBox="0 0 48 48" aria-hidden="true">${r.type.startsWith("Estaminet") ? ICONS.diner : r.type.includes("cocktail") || r.type.includes("bar") ? ICONS.digeo : ICONS.midi}</svg></div>
+      <div><h3>${esc(r.name)}</h3><p class="where">${esc(r.type)} · ${esc(r.addr)}</p></div>
+    </div>
+    <div class="meta"><span class="badge star">★ ${r.rating} · ${r.reviews} avis</span><span class="badge">€€</span></div>
+    <dl class="hours">
+      <dt>Samedi</dt><dd>${esc(r.sat)}</dd>
+      <dt>Dimanche</dt><dd class="${r.sun === "Fermé" ? "closed" : ""}">${r.sun === "Fermé" ? "Fermé" : esc(r.sun) + (r.sunClosedEvening ? " (midi seulement)" : "")}</dd>
+    </dl>
+    <p class="desc">${esc(r.desc)}</p>
+    <div class="actions">
+      ${r.menu !== ta ? `<a class="btn primary" href="${r.menu}" target="_blank" rel="noopener">La carte</a>` : ""}
+      <a class="btn ta" href="${ta}" target="_blank" rel="noopener">TripAdvisor</a>
+      <a class="btn" href="${maps}" target="_blank" rel="noopener">Plan</a>
+      <a class="btn" href="tel:${r.phone}">Appeler</a>
+    </div>
+  </article>`;
+}
+function renderRestos() { document.getElementById("resto-list").innerHTML = RESTOS.map(restoTile).join(""); }
+document.getElementById("resto-filters").addEventListener("click", e => {
+  const b = e.target.closest("[data-f]"); if (!b) return;
+  document.querySelectorAll("#resto-filters .filter").forEach(x => x.setAttribute("aria-pressed", x === b));
+  document.querySelectorAll("#resto-list .tile").forEach(t => {
+    t.hidden = b.dataset.f !== "all" && !t.dataset.open.split(" ").includes(b.dataset.f);
+  });
+});
+
+/* ---------- Onglet Activités ---------- */
+const ACT_ICONS = {
+  biere: ICONS.apero,
+  musee: '<path d="M6 18L24 7l18 11M9 18v18M17 18v18M31 18v18M39 18v18M5 40h38"/>',
+  noel: '<path d="M24 5l9 13h-5l8 11h-6l7 10H11l7-10h-6l8-11h-5z"/><path d="M24 39v4"/>',
+  roue: '<circle cx="24" cy="21" r="14"/><circle cx="24" cy="21" r="2"/><path d="M24 7v28M10 21h28M14 11l20 20M34 11L14 31M17 43l7-20 7 20"/>',
+  beffroi: '<path d="M18 43V18l6-12 6 12v25M14 43h20M21 24h6M21 32h6"/><circle cx="24" cy="15" r="2"/>',
+  marche: '<path d="M7 18l4-10h26l4 10M7 18h34v4a5 5 0 0 1-10 0 5 5 0 0 1-7 0 5 5 0 0 1-7 0 5 5 0 0 1-10 0zM10 26v15h28V26"/>',
+  livre: '<path d="M24 12c-5-4-12-4-17-2v28c5-2 12-2 17 2 5-4 12-4 17-2V10c-5-2-12-2-17 2zM24 12v28"/>',
+  villa: '<path d="M6 40h36M10 40V22h16v18M26 30h12v10M10 22l8-8h18v16M30 18h4"/>',
+  piscine: '<path d="M6 30c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2M6 38c3 0 3 2 6 2s3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2M16 26V10a4 4 0 0 1 8 0M32 26V10a4 4 0 0 0-8 0M16 16h16M16 22h16"/>',
+  gare: '<rect x="8" y="12" width="32" height="24" rx="3"/><path d="M8 20h32M16 36l-3 6M32 36l3 6M15 28h.01M33 28h.01M20 6h8"/>'
+};
+const ACTIVITIES = [
+  { icon: "musee", tone: "t-dusk", name: "Palais des Beaux-Arts", where: "Place de la République · métro République Beaux-Arts",
+    when: "Sam. et dim. 10h–18h", price: "À partir de 7 €",
+    desc: "L’un des plus grands musées de France. Jusqu’au 22 mars 2027, l’exposition « Voyage à l’anglaise » réunit Turner et les artistes du Grand Tour, en partenariat avec la Tate Britain. Visite guidée des chefs-d’œuvre les samedis et dimanches à 15h.",
+    link: "https://pba.lille.fr/" },
+  { icon: "biere", tone: "t-dusk", name: "Visite de la brasserie Célestin", where: "Micro-brasserie du Vieux-Lille", mapQuery: "Célestin micro-brasserie Vieux-Lille",
+    when: "1 h · créneaux à réserver", price: "À partir de 16 €",
+    desc: "Visite guidée de la micro-brasserie et de ses 285 ans d’histoire, puis dégustation de 3 bières artisanales. Groupes de 16 maximum, en français ou en anglais. Annulation gratuite jusqu’à 24 h avant.",
+    link: "https://www.tripadvisor.fr/AttractionProductReview-g187178-d34686461-Historic_brewery_visit_beer_tastings_in_Lille-Lille_Nord_Hauts_de_France.html", linkLabel: "Réserver" },
+  { icon: "noel", tone: "t-night", name: "Marché de Noël", where: "Place Rihour · métro Rihour",
+    when: "Sam. jusqu’à 22h · dim. 11h–20h30", price: "Gratuit",
+    desc: "Environ 90 chalets jusqu’au 30 décembre : vin chaud, gaufres, artisanat. À faire à la tombée de la nuit, quand tout s’illumine." },
+  { icon: "roue", tone: "t-night", name: "Grande Roue", where: "Grand-Place · à deux pas du marché de Noël",
+    when: "Week-end 10h–minuit", price: "Environ 7 €",
+    desc: "50 mètres de haut, vue sur la Grand-Place, la Vieille Bourse et les toits illuminés. Plus magique de nuit." },
+  { icon: "beffroi", tone: "t-day", name: "Beffroi de l’Hôtel de Ville", where: "Place Augustin Laurent · métro Mairie de Lille",
+    when: "Horaires à vérifier, réservation conseillée", price: "Payant",
+    desc: "104 mètres, classé à l’Unesco. Un peu plus de 400 marches, puis une vue à 360° sur toute la métropole." },
+  { icon: "marche", tone: "t-day", name: "Marché de Wazemmes", where: "Place de la Nouvelle Aventure · métro Wazemmes ou Gambetta",
+    when: "Dimanche 7h–14h", price: "Gratuit",
+    desc: "Le Lille populaire et vivant, l’un des plus grands marchés d’Europe. Le dimanche, avec brocante et épices en plus. Idéal pour un brunch sur le pouce." },
+  { icon: "livre", tone: "t-day", name: "Vieille Bourse", where: "Grand-Place",
+    when: "Du mardi au dimanche", price: "Gratuit",
+    desc: "Joyau de la Renaissance flamande. Dans sa cour, bouquinistes et joueurs d’échecs : parfait pour une pause entre deux visites." },
+  { icon: "gare", tone: "t-dusk", name: "Gare Saint-Sauveur", where: "Boulevard Jean-Baptiste Lebas · près de l’Hôtel de Ville",
+    when: "Selon la programmation", price: "Souvent gratuit",
+    desc: "Ancienne gare de marchandises devenue lieu culturel : expositions, cinéma, bar-brasserie. Bonne option pour un verre décontracté." },
+  { icon: "piscine", tone: "t-dusk", name: "La Piscine, musée d’art et d’industrie", where: "Roubaix · métro ligne 2",
+    when: "Horaires à vérifier", price: "Payant",
+    desc: "Un musée installé dans une piscine Art déco, avec le grand bassin conservé au milieu des sculptures. Spectaculaire, à 30 minutes de métro." },
+  { icon: "villa", tone: "t-day", name: "Villa Cavrois", where: "Croix · près de Roubaix",
+    when: "Mar.–dim. 10h–18h", price: "11 €",
+    desc: "Villa moderniste des années 1930 signée Mallet-Stevens, entièrement restaurée. Pour les amateurs de design et d’architecture." }
+];
+function renderActivities() {
+  document.getElementById("activity-list").innerHTML = ACTIVITIES.map(a => {
+    const maps = "https://www.google.com/maps/search/?api=1&query=" + enc((a.mapQuery || a.name + ", " + a.where.split(" · ")[0]) + ", Lille");
+    return `<article class="tile ${a.tone}">
+      <div class="tile-head">
+        <div class="thumb"><svg viewBox="0 0 48 48" aria-hidden="true">${ACT_ICONS[a.icon]}</svg></div>
+        <div><h3>${esc(a.name)}</h3><p class="where">${esc(a.where)}</p></div>
+      </div>
+      <div class="meta"><span class="badge star">${esc(a.when)}</span><span class="badge">${esc(a.price)}</span></div>
+      <p class="desc">${esc(a.desc)}</p>
+      <div class="actions">
+        ${a.link ? `<a class="btn primary" href="${a.link}" target="_blank" rel="noopener">${a.linkLabel || "Site officiel"}</a>` : ""}
+        <a class="btn" href="${maps}" target="_blank" rel="noopener">Plan</a>
+      </div>
+    </article>`;
+  }).join("");
+}
+
 /* ---------- Onglets ---------- */
 function showTab(name) {
-  if (!["timing", "itineraire"].includes(name)) name = "timing";
-  document.getElementById("tabs").dataset.active = name;
+  const TABS = ["timing", "itineraire", "resto", "activites"];
+  if (!TABS.includes(name)) name = "timing";
+  const tabs = document.getElementById("tabs");
+  tabs.dataset.active = name;
+  tabs.style.setProperty("--i", TABS.indexOf(name));
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === name));
   document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== name);
   if (name === "itineraire") { initMap(); renderSide(); setTimeout(() => map && map.invalidateSize(), 60); }
@@ -625,7 +871,7 @@ document.getElementById("timeline").addEventListener("click", e => {
     const s = state.steps.find(x => x.id === b.dataset.edit);
     editingId = s.id;
     document.getElementById("edit-title").textContent = s.moment;
-    form.time.value = s.time; form.name.value = s.name; form.addr.value = s.addr; form.note.value = s.note;
+    form.time.value = s.time; form.name.value = s.name; form.addr.value = s.addr; form.note.value = s.note; form.photo.value = s.photo || "";
     dlg.showModal(); form.name.focus();
   }
 });
@@ -634,7 +880,7 @@ dlg.addEventListener("close", () => {
     const s = state.steps.find(x => x.id === editingId);
     const placeChanged = s.addr !== form.addr.value.trim() || s.name !== form.name.value.trim();
     s.time = form.time.value || s.time;
-    s.name = form.name.value.trim(); s.addr = form.addr.value.trim(); s.note = form.note.value.trim();
+    s.name = form.name.value.trim(); s.addr = form.addr.value.trim(); s.note = form.note.value.trim(); s.photo = form.photo.value.trim();
     if (placeChanged) { delete s.lat; delete s.lng; }
     save(); render();
     if (placeChanged) geocode(s);
@@ -650,6 +896,8 @@ document.getElementById("reset").addEventListener("click", () => {
 
 function render() { renderTiming(); if (map) { renderSide(); drawMap(false); computeLegs(); } }
 
+renderRestos();
+renderActivities();
 showTab(location.hash.slice(1));
 render();
 setInterval(() => { if (!dlg.open) renderTiming(); }, 30000);
