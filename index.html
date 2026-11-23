@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B0826">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lille">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Lille · vendredi 4 décembre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -896,6 +903,9 @@ document.getElementById("reset").addEventListener("click", () => {
 
 function render() { renderTiming(); if (map) { renderSide(); drawMap(false); computeLegs(); } }
 
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
 renderRestos();
 renderActivities();
 showTab(location.hash.slice(1));
